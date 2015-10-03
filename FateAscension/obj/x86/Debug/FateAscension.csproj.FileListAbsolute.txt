@@ -25,8 +25,8 @@ c:\users\gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension
 c:\users\gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\obj\x86\Debug\FateAscension.pdb
 c:\users\gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\RogueSharp.dll
 c:\users\gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\RogueSharp.xml
-C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\myFloor.png
-C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\myWall.png
 C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\Player.png
 C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\Hound.png
 C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\White.png
+C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\myWall.jpg
+C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\myFloor.png
