@@ -19,6 +19,7 @@ namespace FateAscension
         private Texture2D _floor;
         private Texture2D _wall;
         private Player _player;
+        private AggressiveEnemy _aggressiveEnemy;
 
         private IMap _map;
 
@@ -78,7 +79,19 @@ namespace FateAscension
                 Sprite = this.Content.Load<Texture2D>("Player")
             };
 
+            startingCell = GetRandomEmptyCell();
+            var pathFromAggressiveEnemy = new PathToPlayer(_player, _map, Content.Load<Texture2D>("White"));
+            pathFromAggressiveEnemy.CreateFrom(startingCell.X, startingCell.Y);
+            _aggressiveEnemy = new AggressiveEnemy(pathFromAggressiveEnemy)
+            {
+                X = startingCell.X,
+                Y = startingCell.Y,
+                Scale = 0.25f,
+                Sprite = Content.Load<Texture2D>("Hound")
+            };
+
             UpdatePlayerFieldOfView();
+            Global.GameState = GameStates.PlayerTurn;
         }
 
         /// <summary>
@@ -107,11 +120,28 @@ namespace FateAscension
             {
                 Exit();
             }
+            else if (_inputState.IsSpace(PlayerIndex.One))
+            {
+                if (Global.GameState == GameStates.PlayerTurn)
+                {
+                    Global.GameState = GameStates.Debugging;
+                }
+                else if (Global.GameState == GameStates.Debugging)
+                {
+                    Global.GameState = GameStates.PlayerTurn;
+                }
+            }
             else 
             {
-                if (_player.HandleInput(_inputState, _map))
+                if (Global.GameState == GameStates.PlayerTurn && _player.HandleInput(_inputState, _map))
                 {
                     UpdatePlayerFieldOfView();
+                    Global.GameState = GameStates.EnemyTurn;
+                }
+                if (Global.GameState == GameStates.EnemyTurn)
+                {
+                    _aggressiveEnemy.Update();
+                    Global.GameState = GameStates.PlayerTurn;
                 }
             }
 
@@ -138,12 +168,12 @@ namespace FateAscension
             {
                 var position = new Vector2(cell.X * sizeOfSprites * scale, cell.Y * sizeOfSprites * scale);
 
-                if (!cell.IsExplored)
+                if (!cell.IsExplored && Global.GameState != GameStates.Debugging)
                 {
                     continue;
                 }
                 Color tint = Color.White;
-                if (!cell.IsInFov)
+                if (!cell.IsInFov && Global.GameState != GameStates.Debugging)
                 {
                     tint = Color.Gray;
                 }
@@ -164,6 +194,11 @@ namespace FateAscension
             }
 
             _player.Draw(spriteBatch);
+            if (Global.GameState == GameStates.Debugging || _map.IsInFov(_aggressiveEnemy.X, _aggressiveEnemy.Y))
+            {
+                _aggressiveEnemy.Draw(spriteBatch);
+            }
+            
 
             spriteBatch.End();
 
@@ -172,12 +207,10 @@ namespace FateAscension
 
         private Cell GetRandomEmptyCell()
         {
-            IRandom random = new DotNetRandom();
-
             while (true)
             {
-                int x = random.Next(49);
-                int y = random.Next(29);
+                int x = Global.Random.Next(49);
+                int y = Global.Random.Next(29);
                 if (_map.IsWalkable(x, y))
                 {
                     return _map.GetCell(x, y);

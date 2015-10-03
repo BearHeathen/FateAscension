@@ -28,3 +28,5 @@ c:\users\gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension
 C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\myFloor.png
 C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\myWall.png
 C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\Player.png
+C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\Hound.png
+C:\Users\Gloom\documents\visual studio 2015\Projects\FateAscension\FateAscension\bin\Windows\Debug\Content\White.png
