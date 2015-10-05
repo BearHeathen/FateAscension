@@ -1,15 +1,14 @@
-﻿using Microsoft.Xna.Framework;
+﻿#region Using Statements
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-
 using RogueSharp;
-using RogueSharp.Random;
 
+#endregion
 
 namespace FateAscension
 {
     /// <summary>
-    /// This is the main type for your game.
+    /// This is the main type for your game
     /// </summary>
     public class FateAscensionRoguelike : Game
     {
@@ -18,27 +17,18 @@ namespace FateAscension
 
         private Texture2D _floor;
         private Texture2D _wall;
+        private IMap _map;
         private Player _player;
         private AggressiveEnemy _aggressiveEnemy;
-
-        private IMap _map;
-
         private InputState _inputState;
 
         public FateAscensionRoguelike()
+           : base()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.IsFullScreen = false;
-            graphics.PreferredBackBufferWidth = 800;
-            graphics.PreferredBackBufferHeight = 600;
-            graphics.ApplyChanges();
-
-            _inputState = new InputState();
-
             Content.RootDirectory = "Content";
+            _inputState = new InputState();
         }
-
-       
 
         /// <summary>
         /// Allows the game to perform any initialization it needs to before starting to run.
@@ -46,11 +36,12 @@ namespace FateAscension
         /// related content.  Calling base.Initialize will enumerate through any components
         /// and initialize them as well.
         /// </summary>
-        
         protected override void Initialize()
         {
-
-            IMapCreationStrategy<Map> mapCreationStrategy = new MapCreationStrategy(50, 30, 100, 7, 3, new DotNetRandom());
+            // TODO: Add your initialization logic here
+            Global.Camera.ViewportWidth = graphics.GraphicsDevice.Viewport.Width;
+            Global.Camera.ViewportHeight = graphics.GraphicsDevice.Viewport.Height;
+            IMapCreationStrategy<Map> mapCreationStrategy = new RandomRoomsMapCreationStrategy<Map>(Global.MapWidth, Global.MapHeight, 100, 7, 3);
             _map = Map.Create(mapCreationStrategy);
 
             base.Initialize();
@@ -60,25 +51,23 @@ namespace FateAscension
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
         /// </summary>
-        
         protected override void LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            
-            _floor = this.Content.Load<Texture2D>("myFloor");
-            _wall = this.Content.Load<Texture2D>("myWall");
 
+            // TODO: use this.Content to load your game content here
+            _floor = Content.Load<Texture2D>("Floor");
+            _wall = Content.Load<Texture2D>("Wall");
             Cell startingCell = GetRandomEmptyCell();
-
             _player = new Player
             {
                 X = startingCell.X,
                 Y = startingCell.Y,
-                Scale = .25f,
-                Sprite = this.Content.Load<Texture2D>("Player")
+                Sprite = Content.Load<Texture2D>("Player")
             };
-
+            UpdatePlayerFieldOfView();
+            Global.Camera.CenterOn(startingCell);
             startingCell = GetRandomEmptyCell();
             var pathFromAggressiveEnemy = new PathToPlayer(_player, _map, Content.Load<Texture2D>("White"));
             pathFromAggressiveEnemy.CreateFrom(startingCell.X, startingCell.Y);
@@ -86,19 +75,15 @@ namespace FateAscension
             {
                 X = startingCell.X,
                 Y = startingCell.Y,
-                Scale = 0.25f,
                 Sprite = Content.Load<Texture2D>("Hound")
             };
-
-            UpdatePlayerFieldOfView();
             Global.GameState = GameStates.PlayerTurn;
         }
 
         /// <summary>
         /// UnloadContent will be called once per game and is the place to unload
-        /// game-specific content.
+        /// all content.
         /// </summary>
-      
         protected override void UnloadContent()
         {
             // TODO: Unload any non ContentManager content here
@@ -109,13 +94,11 @@ namespace FateAscension
         /// checking for collisions, gathering input, and playing audio.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-
+            // TODO: Add your update logic here
             _inputState.Update();
+            Global.Camera.HandleInput(_inputState, PlayerIndex.One);
             if (_inputState.IsExitGame(PlayerIndex.One))
             {
                 Exit();
@@ -131,11 +114,13 @@ namespace FateAscension
                     Global.GameState = GameStates.PlayerTurn;
                 }
             }
-            else 
+            else
             {
-                if (Global.GameState == GameStates.PlayerTurn && _player.HandleInput(_inputState, _map))
+                if (Global.GameState == GameStates.PlayerTurn
+                   && _player.HandleInput(_inputState, _map))
                 {
                     UpdatePlayerFieldOfView();
+                    Global.Camera.CenterOn(_map.GetCell(_player.X, _player.Y));
                     Global.GameState = GameStates.EnemyTurn;
                 }
                 if (Global.GameState == GameStates.EnemyTurn)
@@ -145,7 +130,6 @@ namespace FateAscension
                 }
             }
 
-
             base.Update(gameTime);
         }
 
@@ -153,21 +137,16 @@ namespace FateAscension
         /// This is called when the game should draw itself.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        
-
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
 
-            spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
-
-            int sizeOfSprites = 64;
-            float scale = .25f;
+            // TODO: Add your drawing code here
+            spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, null, null, null, null, Global.Camera.TranslationMatrix);
 
             foreach (Cell cell in _map.GetAllCells())
             {
-                var position = new Vector2(cell.X * sizeOfSprites * scale, cell.Y * sizeOfSprites * scale);
-
+                var position = new Vector2(cell.X * Global.SpriteWidth, cell.Y * Global.SpriteHeight);
                 if (!cell.IsExplored && Global.GameState != GameStates.Debugging)
                 {
                     continue;
@@ -177,20 +156,14 @@ namespace FateAscension
                 {
                     tint = Color.Gray;
                 }
-
                 if (cell.IsWalkable)
                 {
-                    spriteBatch.Draw(_floor, position, 
-                    null, null, null, 0.0f, new Vector2(scale, scale), 
-                    tint, SpriteEffects.None, 0.8f);
+                    spriteBatch.Draw(_floor, position, null, null, null, 0.0f, Vector2.One, tint, SpriteEffects.None, LayerDepth.Cells);
                 }
                 else
                 {
-                    spriteBatch.Draw(_wall, position,
-                    null, null, null, 0.0f, new Vector2(scale, scale),
-                    tint, SpriteEffects.None, 0.8f);
+                    spriteBatch.Draw(_wall, position, null, null, null, 0.0f, Vector2.One, tint, SpriteEffects.None, LayerDepth.Cells);
                 }
-
             }
 
             _player.Draw(spriteBatch);
@@ -198,11 +171,22 @@ namespace FateAscension
             {
                 _aggressiveEnemy.Draw(spriteBatch);
             }
-            
 
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        private void UpdatePlayerFieldOfView()
+        {
+            _map.ComputeFov(_player.X, _player.Y, 30, true);
+            foreach (Cell cell in _map.GetAllCells())
+            {
+                if (_map.IsInFov(cell.X, cell.Y))
+                {
+                    _map.SetCellProperties(cell.X, cell.Y, cell.IsTransparent, cell.IsWalkable, true);
+                }
+            }
         }
 
         private Cell GetRandomEmptyCell()
@@ -217,18 +201,5 @@ namespace FateAscension
                 }
             }
         }
-
-        private void UpdatePlayerFieldOfView()
-        {
-            _map.ComputeFov(_player.X, _player.Y, 3, true);
-            foreach (Cell cell in _map.GetAllCells())
-            {
-                if (_map.IsInFov(cell.X, cell.Y))
-                {
-                    _map.SetCellProperties(cell.X, cell.Y, cell.IsTransparent, cell.IsWalkable, true);
-                }
-            }
-        }
-
     }
 }
