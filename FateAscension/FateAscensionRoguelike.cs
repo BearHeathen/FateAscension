@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RogueSharp;
+using RogueSharp.DiceNotation;
+using System.Collections.Generic;
 
 #endregion
 
@@ -19,7 +21,7 @@ namespace FateAscension
         private Texture2D _wall;
         private IMap _map;
         private Player _player;
-        private AggressiveEnemy _aggressiveEnemy;
+        private List<AggressiveEnemy> _aggressiveEnemies = new List<AggressiveEnemy>();
         private InputState _inputState;
 
         public FateAscensionRoguelike()
@@ -60,23 +62,30 @@ namespace FateAscension
             _floor = Content.Load<Texture2D>("Floor");
             _wall = Content.Load<Texture2D>("Wall");
             Cell startingCell = GetRandomEmptyCell();
+            
             _player = new Player
             {
                 X = startingCell.X,
                 Y = startingCell.Y,
-                Sprite = Content.Load<Texture2D>("Player")
+                Sprite = Content.Load<Texture2D>("Player"),
+                // With a 15 armor class if the enemy has no attack bonus
+                // the player will be hit 25% of the time
+                ArmorClass = 15,
+                AttackBonus = 1,
+                // The player will roll 2D4 for damage or 2 x 4 sided Die
+                // We can use the Dice class in RogueSharp for this
+                Damage = Dice.Parse("2d4"),
+                // The player can take 50 points of damage before dying
+                Health = 50,
+                Name = "Mr. Rogue"
             };
             UpdatePlayerFieldOfView();
             Global.Camera.CenterOn(startingCell);
-            startingCell = GetRandomEmptyCell();
-            var pathFromAggressiveEnemy = new PathToPlayer(_player, _map, Content.Load<Texture2D>("White"));
-            pathFromAggressiveEnemy.CreateFrom(startingCell.X, startingCell.Y);
-            _aggressiveEnemy = new AggressiveEnemy(pathFromAggressiveEnemy)
-            {
-                X = startingCell.X,
-                Y = startingCell.Y,
-                Sprite = Content.Load<Texture2D>("Hound")
-            };
+            /* ADDAGRRESSIVENEMIES(10) <--- MAGIC NUMBER ***
+            *** REPLACE THIS LATER TO BE A NUMBER DEPENDENT ON ***
+            *** THE PLAYER LEVEL AND DUNGEON DEPTH LEVEL *** */
+            AddAggressiveEnemies(10);
+            Global.CombatManager = new CombatManager(_player, _aggressiveEnemies);
             Global.GameState = GameStates.PlayerTurn;
         }
 
@@ -125,7 +134,10 @@ namespace FateAscension
                 }
                 if (Global.GameState == GameStates.EnemyTurn)
                 {
-                    _aggressiveEnemy.Update();
+                    foreach (var enemy in _aggressiveEnemies)
+                    {
+                        enemy.Update();
+                    }
                     Global.GameState = GameStates.PlayerTurn;
                 }
             }
@@ -167,10 +179,14 @@ namespace FateAscension
             }
 
             _player.Draw(spriteBatch);
-            if (Global.GameState == GameStates.Debugging || _map.IsInFov(_aggressiveEnemy.X, _aggressiveEnemy.Y))
+            foreach (var enemy in _aggressiveEnemies)
             {
-                _aggressiveEnemy.Draw(spriteBatch);
+                if (Global.GameState == GameStates.Debugging || _map.IsInFov(enemy.X, enemy.Y))
+                {
+                    enemy.Draw(spriteBatch);
+                }
             }
+            
 
             spriteBatch.End();
 
@@ -199,6 +215,28 @@ namespace FateAscension
                 {
                     return _map.GetCell(x, y);
                 }
+            }
+        }
+
+        private void AddAggressiveEnemies(int numberOfEnemies)
+        {
+            for (int i = 0; i < numberOfEnemies; i++)
+            {
+                Cell enemyCell = GetRandomEmptyCell();
+                var pathFromAggressiveEnemy = new PathToPlayer(_player, _map, Content.Load<Texture2D>("White"));
+                pathFromAggressiveEnemy.CreateFrom(enemyCell.X, enemyCell.Y);
+                var enemy = new AggressiveEnemy(_map, pathFromAggressiveEnemy)
+                {
+                    X = enemyCell.X,
+                    Y = enemyCell.Y,
+                    Sprite = Content.Load<Texture2D>("Hound"),
+                    ArmorClass = 10,
+                    AttackBonus = 0,
+                    Damage = Dice.Parse("d3"),
+                    Health = 10,
+                    Name = "Hunting Hound"
+                };
+                _aggressiveEnemies.Add(enemy);
             }
         }
     }

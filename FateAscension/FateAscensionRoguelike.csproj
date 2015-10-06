@@ -40,7 +40,9 @@
   <ItemGroup>
     <Compile Include="AggressiveEnemy.cs" />
     <Compile Include="Camera.cs" />
+    <Compile Include="CombatManager.cs" />
     <Compile Include="FateAscensionRoguelike.cs" />
+    <Compile Include="Figure.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="InputState.cs" />
     <Compile Include="LayerDepth.cs" />

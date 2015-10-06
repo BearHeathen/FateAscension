@@ -1,18 +1,18 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using RogueSharp;
 
 namespace FateAscension
 {
-    public class AggressiveEnemy
+    public class AggressiveEnemy : Figure
     {
         private readonly PathToPlayer _path;
+        private readonly IMap _map;
+        private bool _isAwareOfPlayer = false;
 
-        public int X { get; set; }
-        public int Y { get; set; }
-        public Texture2D Sprite { get; set; }
-
-        public AggressiveEnemy(PathToPlayer path)
+        public AggressiveEnemy(IMap map, PathToPlayer path)
         {
+            _map = map;
             _path = path;
         }
         public void Draw(SpriteBatch spriteBatch)
@@ -22,9 +22,34 @@ namespace FateAscension
         }
         public void Update()
         {
-            _path.CreateFrom(X, Y);
-            X = _path.FirstCell.X;
-            Y = _path.FirstCell.Y;
+            if (!_isAwareOfPlayer)
+            {
+                // When the enemy is not aware of the player
+                // check the map to see if they are in field-of-view
+                if (_map.IsInFov(X, Y))
+                {
+                    _isAwareOfPlayer = true;
+                }
+            }
+
+            if (_isAwareOfPlayer)
+            {
+                _path.CreateFrom(X, Y);
+                // Use the CombatManager to check if the player located
+                // at the cell we are moving into
+                if (Global.CombatManager.IsPlayerAt(_path.FirstCell.X, _path.FirstCell.Y))
+                {
+                    // Make an attack against the player
+                    Global.CombatManager.Attack(this, Global.CombatManager.FigureAt(_path.FirstCell.X, _path.FirstCell.Y));
+                }
+                else
+                {
+                    // Since the player wasn't in the cell, just move into as normal
+                    X = _path.FirstCell.X;
+                    Y = _path.FirstCell.Y;
+                }
+            }
+            
         }
     }
 }

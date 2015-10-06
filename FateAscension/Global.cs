@@ -13,6 +13,7 @@ namespace FateAscension
     {
         public static readonly Camera Camera = new Camera();
         public static readonly IRandom Random = new DotNetRandom();
+        public static CombatManager CombatManager;
         public static GameStates GameState { get; set; }
         public static readonly int MapWidth = 50;
         public static readonly int MapHeight = 30;

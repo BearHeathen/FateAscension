@@ -4,15 +4,14 @@ using RogueSharp;
 
 namespace FateAscension
 {
-    public class Player
+    public class Player : Figure
     {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public Texture2D Sprite { get; set; }
+        
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(Sprite, new Vector2(X * Sprite.Width, Y * Sprite.Height), null, null, null, 0.0f, Vector2.One, Color.White, SpriteEffects.None, LayerDepth.Figures);
         }
+
         public bool HandleInput(InputState inputState, IMap map)
         {
             if (inputState.IsLeft(PlayerIndex.One))
@@ -20,7 +19,20 @@ namespace FateAscension
                 int tempX = X - 1;
                 if (map.IsWalkable(tempX, Y))
                 {
-                    X = tempX;
+                    // Check to see if there is an enemy at the location
+                    // that the player is attempting to move into
+                    var enemy = Global.CombatManager.EnemyAt(tempX, Y);
+                    if (enemy == null)
+                    {
+                        // When there is not an enemy, move as normal
+                        X = tempX;
+                    }
+                    else
+                    {
+                        // When there is an enemy in the cell, make an
+                        // attack against them by using the CombatManager
+                        Global.CombatManager.Attack(this, enemy);
+                    }
                     return true;
                 }
             }
@@ -29,7 +41,20 @@ namespace FateAscension
                 int tempX = X + 1;
                 if (map.IsWalkable(tempX, Y))
                 {
-                    X = tempX;
+                    // Check to see if there is an enemy at the location
+                    // that the player is attempting to move into
+                    var enemy = Global.CombatManager.EnemyAt(tempX, Y);
+                    if (enemy == null)
+                    {
+                        // When there is not an enemy, move as normal
+                        X = tempX;
+                    }
+                    else
+                    {
+                        // When there is an enemy in the cell, make an
+                        // attack against them by using the CombatManager
+                        Global.CombatManager.Attack(this, enemy);
+                    }
                     return true;
                 }
             }
@@ -38,7 +63,20 @@ namespace FateAscension
                 int tempY = Y - 1;
                 if (map.IsWalkable(X, tempY))
                 {
-                    Y = tempY;
+                    // Check to see if there is an enemy at the location
+                    // that the player is attempting to move into
+                    var enemy = Global.CombatManager.EnemyAt(X, tempY);
+                    if (enemy == null)
+                    {
+                        // When there is not an enemy, move as normal
+                        Y = tempY;
+                    }
+                    else
+                    {
+                        // When there is an enemy in the cell, make an
+                        // attack against them by using the CombatManager
+                        Global.CombatManager.Attack(this, enemy);
+                    }
                     return true;
                 }
             }
@@ -47,7 +85,20 @@ namespace FateAscension
                 int tempY = Y + 1;
                 if (map.IsWalkable(X, tempY))
                 {
-                    Y = tempY;
+                    // Check to see if there is an enemy at the location
+                    // that the player is attempting to move into
+                    var enemy = Global.CombatManager.EnemyAt(X, tempY);
+                    if (enemy == null)
+                    {
+                        // When there is not an enemy, move as normal
+                        Y = tempY;
+                    }
+                    else
+                    {
+                        // When there is an enemy in the cell, make an
+                        // attack against them by using the CombatManager
+                        Global.CombatManager.Attack(this, enemy);
+                    }
                     return true;
                 }
             }
